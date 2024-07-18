@@ -1,4 +1,4 @@
-// Replace this with your actual Google Sheet ID
+//  Google Sheet ID
 var SHEET_ID = '146zkuzMr05zqvpJFzdjxxF60tFUD0ReH3kOZFeoAfxM';
 
 function doGet() {
