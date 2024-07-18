@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        input {
+          display:block;
+            width: 40%;
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+          display:block;
+            width: 80%;
+        
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 25%;
+            display:block;
+            margin:auto;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #errorMessage {
+            color: red;
+            margin-top: 10px;
+        }
+        #userInfo, #notesSection {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .info-item, .note-item {
+            margin-bottom: 10px;
+        }
+        .info-label, .note-label {
+            font-weight: bold;
+        }
+        .notes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .notes-table th, .notes-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .notes-table th {
+            background-color: #f5f5f5;
+        }
+        .notes-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .average-row {
+            background-color: #e8f5e9 !important;
+            font-weight: bold;
+        }
+        .conclusion {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .conclusion h3 {
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+        .conclusion p {
+            margin: 10px 0;
+        }
+        #notesSection {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loginSection">
+            <h1>Login</h1>
+            <form id="loginForm">
+                <input type="text" id="rt" placeholder="Enter ر. ت." required>
+                <input type="text" id="cin" placeholder="Enter N° CIN" required>
+                <button type="submit">Login</button>
+            </form>
+            <div id="errorMessage"></div>
+        </div>
+        <div id="userInfoSection" style="display: none;">
+            <h1>User Information</h1>
+            <div id="userInfo"></div>
+            <div id="commentSection">
+                <h2>Add a Comment</h2>
+                <textarea id="commentText" rows="4" placeholder="Enter your comment here"></textarea>
+                <button onclick="submitComment()">Envoyer</button>
+            </div>
+            <button onclick="showNotes()">Notes</button>
+            <button onclick="showLoginForm()">Back to Login</button>
+        </div>
+        <div id="notesSection" style="display: none;">
+            <h1>Notes</h1>
+            <div id="notesContent"></div>
+            <button onclick="showUserInfo()">Back to User Info</button>
+        </div>
+    </div>
+    
+    <script>
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            var rt = document.getElementById('rt').value;
+            var cin = document.getElementById('cin').value;
+            google.script.run.withSuccessHandler(handleLoginResult).withFailureHandler(handleError).checkLogin(rt, cin);
+        }
+        
+        function handleLoginResult(result) {
+            if (result.success) {
+                displayUserInfo(result.userInfo);
+            } else {
+                document.getElementById('errorMessage').innerText = result.error || 'Login failed. Please check your ر. ت. and N° CIN.';
+            }
+        }
+        
+        function handleError(error) {
+            document.getElementById('errorMessage').innerText = 'An error occurred: ' + error.message;
+        }
+        
+        function displayUserInfo(info) {
+            var userInfoDiv = document.getElementById('userInfo');
+            userInfoDiv.innerHTML = '';
+            for (var key in info) {
+                var item = document.createElement('div');
+                item.className = 'info-item';
+                item.innerHTML = '<span class="info-label">' + key + ': </span><span>' + info[key] + '</span>';
+                userInfoDiv.appendChild(item);
+            }
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userInfoSection').style.display = 'block';
+        }
+        
+        function showLoginForm() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('userInfoSection').style.display = 'none';
+            document.getElementById('notesSection').style.display = 'none';
+            document.getElementById('errorMessage').innerText = '';
+        }
+        
+      function submitComment() {
+    var comment = document.getElementById('commentText').value;
+    if (comment.trim() === '') {
+        alert('الرجاء إدخال تعليق قبل الإرسال.');
+        return;
+    }
+    var rt = document.getElementById('rt').value;
+    var cin = document.getElementById('cin').value;
+    google.script.run.withSuccessHandler(handleCommentResult).withFailureHandler(handleCommentError).submitComment(rt, cin, comment);
+}
+
+function handleCommentResult(result) {
+    if (result.success) {
+        alert(result.message);
+        document.getElementById('commentText').value = ''; // Clear the comment field
+    } else {
+        alert('فشل في إرسال التعليق: ' + (result.error || 'خطأ غير معروف'));
+    }
+}
+
+function handleCommentError(error) {
+    alert('حدث خطأ أثناء إرسال التعليق: ' + error.message);
+}
+
+        function handleCommentResult(result) {
+            if (result.success) {
+                alert('Comment submitted successfully.');
+                document.getElementById('commentText').value = ''; // Clear the comment field
+            } else {
+                alert('Failed to submit comment: ' + (result.error || 'Unknown error'));
+            }
+        }
+
+        function handleCommentError(error) {
+            alert('An error occurred while submitting the comment: ' + error.message);
+        }
+        
+        function showNotes() {
+            var rt = document.getElementById('rt').value;
+            var cin = document.getElementById('cin').value;
+            google.script.run.withSuccessHandler(displayNotes).withFailureHandler(handleError).getNotes(rt, cin);
+        }
+        
+        function displayNotes(result) {
+            if (!result.success) {
+                alert(result.error || 'Failed to retrieve notes');
+                return;
+            }
+
+            var notes = result.notes;
+            console.log("Received notes:", notes);
+            var notesContent = document.getElementById('notesContent');
+            notesContent.innerHTML = '';
+
+            // Create the main table
+            var table = document.createElement('table');
+            table.className = 'notes-table';
+            var headerRow = table.insertRow();
+
+            var groupNames = ['مجموعة أ', 'مجموعة ب', 'مجموعة ج', 'مجموعة د'];
+            groupNames.forEach(function(groupName) {
+                var headerCell = headerRow.insertCell();
+                headerCell.innerHTML = '<h3>' + groupName + '</h3>';
+            });
+
+            // Find the maximum number of modules in any group
+            var maxModules = Math.max(...groupNames.map(group => Object.keys(notes[group]).length - 1)); // -1 to exclude the average
+
+            // Create rows for each module and its note
+            for (var i = 0; i < maxModules; i++) {
+                var row = table.insertRow();
+                groupNames.forEach(function(groupName) {
+                    var cell = row.insertCell();
+                    var modules = Object.keys(notes[groupName]).filter(key => key !== 'المعدل');
+                    if (i < modules.length) {
+                        var module = modules[i];
+                        cell.innerHTML = `<strong>${module}:</strong> ${notes[groupName][module]}`;
+                    }
+                });
+            }
+
+            // Create a row for group averages
+            var averageRow = table.insertRow();
+            averageRow.className = 'average-row';
+            groupNames.forEach(function(groupName) {
+                var cell = averageRow.insertCell();
+                cell.innerHTML = `<strong>المعدل: ${notes[groupName]['المعدل']}</strong>`;
+            });
+
+            notesContent.appendChild(table);
+
+            // Create the conclusion section
+            var conclusion = document.createElement('div');
+            conclusion.className = 'conclusion';
+            conclusion.innerHTML = `
+                <h3>النتائج النهائية</h3>
+                <p><strong>معدل المجموعات:</strong> ${notes['نتائج نهائية']['معدل المجموعات']}</p>
+                <p><strong>امتحان التخرج:</strong> ${notes['نتائج نهائية']['امتحان التخرج']}</p>
+                <p><strong>المجموع:</strong> ${notes['نتائج نهائية']['المجموع']}</p>
+            `;
+
+            notesContent.appendChild(conclusion);
+
+            document.getElementById('userInfoSection').style.display = 'none';
+            document.getElementById('notesSection').style.display = 'block';
+        }
+
+        function showUserInfo() {
+            document.getElementById('notesSection').style.display = 'none';
+            document.getElementById('userInfoSection').style.display = 'block';
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', handleFormSubmit);
+    </script>
+</body>
+</html>
